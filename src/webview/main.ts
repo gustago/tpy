@@ -122,6 +122,7 @@ export function createApp(
           td.dataset.col = v.schema[c]!;
           td.addEventListener('blur', onCellBlur);
           td.addEventListener('keydown', onCellKey);
+          td.addEventListener('paste', onCellPaste);
           tr.appendChild(td);
         }
         tbody.appendChild(tr);
@@ -146,6 +147,28 @@ export function createApp(
       rowIdx: row,
       columnName: col,
       expression,
+    });
+  }
+
+  function onCellPaste(e: ClipboardEvent): void {
+    const text = e.clipboardData?.getData('text/plain') ?? '';
+    // Detecta TSV: tem TAB (multi-coluna) ou \n (multi-linha). Senão deixa o
+    // comportamento padrão (cola string única na célula).
+    if (!text.includes('\t') && !text.includes('\n')) return;
+    e.preventDefault();
+    const td = e.target as HTMLTableCellElement;
+    const v = getCurrentVar();
+    if (!v) return;
+    const row = parseInt(td.dataset['row'] ?? '0', 10);
+    const colName = td.dataset['col'] ?? '';
+    const colIdx = v.schema.indexOf(colName);
+    if (colIdx === -1) return;
+    vscode.postMessage({
+      kind: 'paste',
+      varName: state.selectedVar,
+      row,
+      col: colIdx,
+      tsv: text,
     });
   }
 

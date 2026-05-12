@@ -330,6 +330,103 @@ describe('edição de célula', () => {
   });
 });
 
+// ── Paste TSV ──────────────────────────────────────────────────────────────
+
+describe('paste TSV', () => {
+  beforeEach(buildHtml);
+
+  function pasteOn(cell: HTMLTableCellElement, text: string): ClipboardEvent {
+    const event = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
+    Object.defineProperty(event, 'clipboardData', {
+      value: { getData: (type: string) => (type === 'text/plain' ? text : '') },
+    });
+    cell.dispatchEvent(event);
+    return event;
+  }
+
+  it('paste com TAB envia mensagem paste com row/col/tsv', () => {
+    const vs = makeVscode();
+    const app = createApp(vs, document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const cell = document.querySelector<HTMLTableCellElement>(
+      'td[data-row="0"][data-col="nome"]',
+    )!;
+    pasteOn(cell, 'a\tb\nc\td');
+
+    expect(vs.calls).toContainEqual({
+      kind: 'paste',
+      varName: 'pessoas',
+      row: 0,
+      col: 0,
+      tsv: 'a\tb\nc\td',
+    });
+  });
+
+  it('paste em célula da segunda coluna usa col=1', () => {
+    const vs = makeVscode();
+    const app = createApp(vs, document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const cell = document.querySelector<HTMLTableCellElement>(
+      'td[data-row="1"][data-col="idade"]',
+    )!;
+    pasteOn(cell, 'x\ty\n');
+
+    expect(vs.calls).toContainEqual({
+      kind: 'paste',
+      varName: 'pessoas',
+      row: 1,
+      col: 1,
+      tsv: 'x\ty\n',
+    });
+  });
+
+  it('paste de string sem TAB nem newline NÃO envia mensagem (comportamento padrão)', () => {
+    const vs = makeVscode();
+    const app = createApp(vs, document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const cell = document.querySelector<HTMLTableCellElement>(
+      'td[data-row="0"][data-col="nome"]',
+    )!;
+    const ev = pasteOn(cell, 'apenas uma string');
+    expect(vs.calls).toHaveLength(0);
+    expect(ev.defaultPrevented).toBe(false);
+  });
+
+  it('paste com newline (mas sem TAB) envia mensagem — TSV de coluna única', () => {
+    const vs = makeVscode();
+    const app = createApp(vs, document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const cell = document.querySelector<HTMLTableCellElement>(
+      'td[data-row="0"][data-col="nome"]',
+    )!;
+    pasteOn(cell, 'a\nb\nc');
+
+    expect(vs.calls).toContainEqual({
+      kind: 'paste',
+      varName: 'pessoas',
+      row: 0,
+      col: 0,
+      tsv: 'a\nb\nc',
+    });
+  });
+
+  it('paste de TSV chama preventDefault', () => {
+    const vs = makeVscode();
+    const app = createApp(vs, document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const cell = document.querySelector<HTMLTableCellElement>(
+      'td[data-row="0"][data-col="nome"]',
+    )!;
+    const ev = pasteOn(cell, 'a\tb');
+    expect(ev.defaultPrevented).toBe(true);
+  });
+});
+
 // ── handleMessage — casos de borda ────────────────────────────────────────
 
 describe('handleMessage — robustez', () => {
