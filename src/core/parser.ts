@@ -594,6 +594,7 @@ function parseListOfDicts(source: string, rhs: Token[]): ListParseResult | null 
   let current: Token[] = [];
   let depth = 0;
   for (const t of inner) {
+    if (t.type === 'COMMENT') continue;
     if (t.type === 'OP') {
       if (t.value === '(' || t.value === '[' || t.value === '{') depth++;
       else if (t.value === ')' || t.value === ']' || t.value === '}') depth--;
@@ -654,6 +655,7 @@ function parseDictLiteral(
   let current: Token[] = [];
   let depth = 0;
   for (const t of inner) {
+    if (t.type === 'COMMENT') continue;
     if (t.type === 'OP') {
       if (t.value === '(' || t.value === '[' || t.value === '{') depth++;
       else if (t.value === ')' || t.value === ']' || t.value === '}') depth--;

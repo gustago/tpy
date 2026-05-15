@@ -234,6 +234,35 @@ describe('paste — edge', () => {
   });
 });
 
+describe('parser — comentários dentro de listas e dicts (tolerância a comentários de IA)', () => {
+  it('ignora comentário inline entre items da lista', () => {
+    ok('var = [\n    {"a": 1},  # comentário\n    {"a": 2},\n]\n');
+  });
+
+  it('ignora comentário após último item antes do ]', () => {
+    ok('var = [\n    {"a": 1},  # fim\n]\n');
+  });
+
+  it('ignora comentário inline entre entradas de um dict', () => {
+    ok('var = [\n    {\n        "a": 1,  # col a\n        "b": 2,\n    },\n]\n');
+  });
+
+  it('ignora múltiplos comentários consecutivos dentro de []', () => {
+    ok('var = [\n    {"a": 1},  # primeiro\n    {"a": 2},  # segundo\n]\n');
+  });
+
+  it('preserva schema e linhas corretos após ignorar comentários', () => {
+    const m = ok('var = [\n    {"nome": "Alice"},  # linha 1\n    {"nome": "Bob"},  # linha 2\n]\n');
+    expect(m.variables[0]?.rows).toHaveLength(2);
+    expect(m.variables[0]?.schema).toEqual(['nome']);
+  });
+
+  it('ignora comentário entre entradas com múltiplas colunas', () => {
+    const m = ok('var = [\n    {\n        "a": 1,  # coluna a\n        "b": 2,  # coluna b\n    },\n]\n');
+    expect(m.variables[0]?.schema).toEqual(['a', 'b']);
+  });
+});
+
 describe('lsp-logic — diagnostics e import binding', () => {
   it('extrai binding de `import x.y` (primeiro segmento)', () => {
     const src = 'import os.path\nvar = [{"a": os.path.join("a", "b")}]\n';

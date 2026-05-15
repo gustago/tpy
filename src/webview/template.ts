@@ -23,7 +23,7 @@ export function getWebviewHtml(
 </head>
 <body>
   <header class="dictab-toolbar">
-    <select id="varSelect" aria-label="Variável"></select>
+    <select id="varSelect" multiple aria-label="Variável"></select>
     <button data-cmd="addVariable">+ var</button>
     <button data-cmd="deleteVariable">– var</button>
     <button data-cmd="renameVariable">renomear var</button>
