@@ -75,12 +75,19 @@
     "vscode:prepublish": "npm run build"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.5.3",
+    "@commitlint/config-conventional": "^20.5.3",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.6",
     "@types/jsdom": "^28.0.1",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.85.0",
     "@vitest/coverage-v8": "^1.6.0",
     "@vscode/vsce": "^2.24.0",
     "jsdom": "^29.1.0",
+    "semantic-release": "^24.2.9",
     "typescript": "^5.4.0",
     "vitest": "^1.6.0"
   }
