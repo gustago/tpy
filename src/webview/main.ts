@@ -48,21 +48,40 @@ export function createApp(
     return state.selectedVars[0] ?? null;
   }
 
-  function renderVarSelect(): void {
-    const select = $('varSelect') as HTMLSelectElement;
-    select.innerHTML = '';
-    for (const v of state.model.variables) {
-      const opt = doc.createElement('option');
-      opt.value = v.name;
-      opt.textContent = v.name;
-      opt.selected = state.selectedVars.includes(v.name);
-      select.appendChild(opt);
+  function syncVarButtonsActive(): void {
+    const container = doc.getElementById('varButtons');
+    if (!container) return;
+    container.querySelectorAll<HTMLButtonElement>('[data-var-toggle]').forEach((btn) => {
+      btn.classList.toggle('active', state.selectedVars.includes(btn.dataset.varToggle!));
+    });
+  }
+
+  function onVarToggle(varName: string): void {
+    if (state.selectedVars.includes(varName)) {
+      state.selectedVars = state.selectedVars.filter((n) => n !== varName);
+    } else {
+      state.selectedVars = [...state.selectedVars, varName];
     }
+    syncVarButtonsActive();
+    renderGrid();
+  }
+
+  function renderVarButtons(): void {
+    const container = doc.getElementById('varButtons');
+    if (!container) return;
+    container.innerHTML = '';
     const existingNames = state.model.variables.map((v) => v.name);
     state.selectedVars = state.selectedVars.filter((name) => existingNames.includes(name));
     if (state.selectedVars.length === 0 && state.model.variables.length > 0) {
       state.selectedVars = [state.model.variables[0]!.name];
-      (select.options[0] as HTMLOptionElement).selected = true;
+    }
+    for (const v of state.model.variables) {
+      const btn = doc.createElement('button');
+      btn.textContent = v.name;
+      btn.dataset.varToggle = v.name;
+      btn.classList.toggle('active', state.selectedVars.includes(v.name));
+      btn.addEventListener('click', () => onVarToggle(v.name));
+      container.appendChild(btn);
     }
   }
 
@@ -70,10 +89,28 @@ export function createApp(
     const section = doc.createElement('section');
     section.className = 'var-section';
 
-    const title = doc.createElement('h3');
+    const sectionToolbar = doc.createElement('div');
+    sectionToolbar.className = 'var-section-toolbar';
+
+    const title = doc.createElement('span');
     title.className = 'var-section-title';
     title.textContent = v.name;
-    section.appendChild(title);
+    sectionToolbar.appendChild(title);
+
+    const miniButtons: [string, string, object][] = [
+      ['+ linha',  'addRow',         { kind: 'addRow',              varName: v.name }],
+      ['– linha',  'removeRow',      { kind: 'requestRemoveRow',    varName: v.name }],
+      ['+ coluna', 'addColumn',      { kind: 'requestAddColumn',    varName: v.name }],
+      ['– coluna', 'removeColumn',   { kind: 'requestRemoveColumn', varName: v.name }],
+    ];
+    for (const [label, cmd, msg] of miniButtons) {
+      const btn = doc.createElement('button');
+      btn.textContent = label;
+      btn.dataset.cmd = cmd;
+      btn.addEventListener('click', () => vscode.postMessage(msg));
+      sectionToolbar.appendChild(btn);
+    }
+    section.appendChild(sectionToolbar);
 
     if (v.schema.length === 0 && v.rows.length === 0) {
       const msg = doc.createElement('p');
@@ -91,6 +128,9 @@ export function createApp(
     for (const col of v.schema) {
       const th = doc.createElement('th');
       th.textContent = col;
+      th.addEventListener('dblclick', () => {
+        vscode.postMessage({ kind: 'requestRenameColumn', varName: v.name, columnName: col });
+      });
       headRow.appendChild(th);
     }
     thead.appendChild(headRow);
@@ -185,13 +225,7 @@ export function createApp(
     const colIdx = v.schema.indexOf(col);
     const original = colIdx >= 0 ? (v.rows[row]?.[colIdx]?.source ?? '') : '';
     if (expression === original) return;
-    vscode.postMessage({
-      kind: 'setCell',
-      varName,
-      rowIdx: row,
-      columnName: col,
-      expression,
-    });
+    vscode.postMessage({ kind: 'setCell', varName, rowIdx: row, columnName: col, expression });
   }
 
   function onCellPaste(e: ClipboardEvent): void {
@@ -206,13 +240,7 @@ export function createApp(
     const colName = td.dataset['col'] ?? '';
     const colIdx = v.schema.indexOf(colName);
     if (colIdx === -1) return;
-    vscode.postMessage({
-      kind: 'paste',
-      varName,
-      row,
-      col: colIdx,
-      tsv: text,
-    });
+    vscode.postMessage({ kind: 'paste', varName, row, col: colIdx, tsv: text });
   }
 
   function onCellKey(e: KeyboardEvent): void {
@@ -247,26 +275,6 @@ export function createApp(
         if (activeVarName === null) return;
         vscode.postMessage({ kind: 'requestRenameVariable', varName: activeVarName });
         break;
-      case 'addColumn':
-        if (activeVarName === null) return;
-        vscode.postMessage({ kind: 'requestAddColumn', varName: activeVarName });
-        break;
-      case 'removeColumn':
-        if (activeVarName === null) return;
-        vscode.postMessage({ kind: 'requestRemoveColumn', varName: activeVarName });
-        break;
-      case 'renameColumn':
-        if (activeVarName === null) return;
-        vscode.postMessage({ kind: 'requestRenameColumn', varName: activeVarName });
-        break;
-      case 'addRow':
-        if (activeVarName === null) return;
-        vscode.postMessage({ kind: 'addRow', varName: activeVarName });
-        break;
-      case 'removeRow':
-        if (activeVarName === null) return;
-        vscode.postMessage({ kind: 'requestRemoveRow', varName: activeVarName });
-        break;
     }
   }
 
@@ -275,18 +283,12 @@ export function createApp(
     const msg = data as Record<string, unknown>;
     if (msg['kind'] === 'state' && msg['model']) {
       state.model = msg['model'] as FileModel;
-      renderVarSelect();
+      renderVarButtons();
       renderGrid();
       const status = doc.getElementById('status');
       if (status) status.textContent = `${state.model.variables.length} variável(eis)`;
     }
   }
-
-  const selectEl = doc.getElementById('varSelect') as HTMLSelectElement | null;
-  selectEl?.addEventListener('change', () => {
-    state.selectedVars = Array.from(selectEl.selectedOptions).map((o) => o.value);
-    renderGrid();
-  });
 
   doc.querySelectorAll<HTMLButtonElement>('[data-cmd]').forEach((btn) => {
     btn.addEventListener('click', () => onCommand(btn.dataset.cmd!));

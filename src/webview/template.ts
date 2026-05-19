@@ -23,16 +23,11 @@ export function getWebviewHtml(
 </head>
 <body>
   <header class="dictab-toolbar">
-    <select id="varSelect" multiple aria-label="Variável"></select>
     <button data-cmd="addVariable">+ var</button>
     <button data-cmd="deleteVariable">– var</button>
     <button data-cmd="renameVariable">renomear var</button>
     <span class="sep"></span>
-    <button data-cmd="addRow">+ linha</button>
-    <button data-cmd="removeRow">– linha</button>
-    <button data-cmd="addColumn">+ coluna</button>
-    <button data-cmd="removeColumn">– coluna</button>
-    <button data-cmd="renameColumn">renomear coluna</button>
+    <div id="varButtons"></div>
   </header>
   <main id="grid"></main>
   <div id="status"></div>

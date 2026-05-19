@@ -5,15 +5,11 @@ import type { VscodeApi } from '../../src/webview/main';
 function buildHtml(): void {
   document.body.innerHTML = `
     <header class="dictab-toolbar">
-      <select id="varSelect" multiple aria-label="Variável"></select>
       <button data-cmd="addVariable">+ var</button>
       <button data-cmd="deleteVariable">– var</button>
       <button data-cmd="renameVariable">renomear var</button>
-      <button data-cmd="addRow">+ linha</button>
-      <button data-cmd="removeRow">– linha</button>
-      <button data-cmd="addColumn">+ coluna</button>
-      <button data-cmd="removeColumn">– coluna</button>
-      <button data-cmd="renameColumn">renomear coluna</button>
+      <span class="sep"></span>
+      <div id="varButtons"></div>
     </header>
     <main id="grid"></main>
     <div id="status"></div>
@@ -61,20 +57,58 @@ const MODEL_ZERO_ROWS = {
   variables: [{ name: 'tab', schema: ['a', 'b'], rows: [] }],
 };
 
-// ── Renderização inicial ───────────────────────────────────────────────────
+// ── Toggle buttons de seleção de variável ─────────────────────────────────
 
-describe('renderização — varSelect (multiselect)', () => {
+describe('toggle buttons — seleção de variável', () => {
   beforeEach(buildHtml);
 
-  it('popula o dropdown com os nomes das variáveis', () => {
-    const vs = makeVscode();
-    const app = createApp(vs, document);
+  it('renderiza um botão de toggle por variável', () => {
+    const app = createApp(makeVscode(), document);
     dispatchState(app, MODEL_TWO_VARS);
 
-    const select = document.getElementById('varSelect') as HTMLSelectElement;
-    expect(select.options.length).toBe(2);
-    expect(select.options[0]!.value).toBe('pessoas');
-    expect(select.options[1]!.value).toBe('cidades');
+    const buttons = document.querySelectorAll('[data-var-toggle]');
+    expect(buttons.length).toBe(2);
+    expect(buttons[0]!.textContent).toBe('pessoas');
+    expect(buttons[1]!.textContent).toBe('cidades');
+  });
+
+  it('primeira variável aparece ativa por padrão', () => {
+    const app = createApp(makeVscode(), document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    expect(document.querySelector('[data-var-toggle="pessoas"]')!.classList.contains('active')).toBe(true);
+    expect(document.querySelector('[data-var-toggle="cidades"]')!.classList.contains('active')).toBe(false);
+  });
+
+  it('clique num botão inativo ativa a variável', () => {
+    const app = createApp(makeVscode(), document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const btn = document.querySelector<HTMLButtonElement>('[data-var-toggle="cidades"]')!;
+    btn.click();
+
+    expect(app.getState().selectedVars).toContain('cidades');
+    expect(btn.classList.contains('active')).toBe(true);
+  });
+
+  it('clique num botão ativo desativa a variável', () => {
+    const app = createApp(makeVscode(), document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const btn = document.querySelector<HTMLButtonElement>('[data-var-toggle="pessoas"]')!;
+    btn.click();
+
+    expect(app.getState().selectedVars).not.toContain('pessoas');
+    expect(btn.classList.contains('active')).toBe(false);
+  });
+
+  it('múltiplos toggles podem estar ativos simultaneamente', () => {
+    const app = createApp(makeVscode(), document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    document.querySelector<HTMLButtonElement>('[data-var-toggle="cidades"]')!.click();
+
+    expect(app.getState().selectedVars).toEqual(['pessoas', 'cidades']);
   });
 
   it('seleciona apenas a primeira variável por padrão', () => {
@@ -83,13 +117,12 @@ describe('renderização — varSelect (multiselect)', () => {
     expect(app.getState().selectedVars).toEqual(['pessoas']);
   });
 
-  it('mantém a variável selecionada se ainda existir após atualização de estado', () => {
+  it('mantém variáveis selecionadas que ainda existem após atualização de estado', () => {
     const app = createApp(makeVscode(), document);
     dispatchState(app, MODEL_TWO_VARS);
 
-    const select = document.getElementById('varSelect') as HTMLSelectElement;
-    select.value = 'cidades';
-    select.dispatchEvent(new Event('change'));
+    document.querySelector<HTMLButtonElement>('[data-var-toggle="cidades"]')!.click();
+    expect(app.getState().selectedVars).toContain('cidades');
 
     dispatchState(app, MODEL_TWO_VARS);
     expect(app.getState().selectedVars).toContain('cidades');
@@ -107,16 +140,14 @@ describe('renderização — varSelect (multiselect)', () => {
     expect(document.getElementById('status')!.textContent).toBe('2 variável(eis)');
   });
 
-  it('seleciona múltiplas variáveis e atualiza selectedVars', () => {
+  it('múltiplas mensagens de state atualizam os botões corretamente', () => {
     const app = createApp(makeVscode(), document);
     dispatchState(app, MODEL_TWO_VARS);
+    dispatchState(app, MODEL_EMPTY_VAR);
 
-    const select = document.getElementById('varSelect') as HTMLSelectElement;
-    select.options[0]!.selected = true;
-    select.options[1]!.selected = true;
-    select.dispatchEvent(new Event('change'));
-
-    expect(app.getState().selectedVars).toEqual(['pessoas', 'cidades']);
+    const buttons = document.querySelectorAll('[data-var-toggle]');
+    expect(buttons.length).toBe(1);
+    expect(buttons[0]!.textContent).toBe('dados');
   });
 });
 
@@ -142,7 +173,7 @@ describe('renderização — grid', () => {
     dispatchState(app, MODEL_ZERO_ROWS);
 
     const ths = document.querySelectorAll('th');
-    expect(ths.length).toBe(3); // vazio + "a" + "b"
+    expect(ths.length).toBe(3);
     expect(ths[1]!.textContent).toBe('a');
     expect(ths[2]!.textContent).toBe('b');
     expect(document.querySelector('.empty-rows')!.textContent).toBe('Sem linhas');
@@ -161,8 +192,7 @@ describe('renderização — grid', () => {
     dispatchState(app, MODEL_TWO_VARS);
 
     const cells = document.querySelectorAll<HTMLTableCellElement>('td[data-col]');
-    const values = Array.from(cells).map((c) => c.textContent);
-    expect(values).toEqual(['"Alice"', '30', '"Bob"', '25']);
+    expect(Array.from(cells).map((c) => c.textContent)).toEqual(['"Alice"', '30', '"Bob"', '25']);
   });
 
   it('células NÃO têm contentEditable por padrão (modo seleção)', () => {
@@ -191,27 +221,20 @@ describe('renderização — grid', () => {
     expect(Array.from(idxCells).map((c) => c.textContent)).toEqual(['1', '2']);
   });
 
-  it('múltiplas variáveis selecionadas renderiza múltiplos grids', () => {
+  it('múltiplas variáveis selecionadas renderiza múltiplas seções', () => {
     const app = createApp(makeVscode(), document);
     dispatchState(app, MODEL_TWO_VARS);
 
-    const select = document.getElementById('varSelect') as HTMLSelectElement;
-    select.options[0]!.selected = true;
-    select.options[1]!.selected = true;
-    select.dispatchEvent(new Event('change'));
+    document.querySelector<HTMLButtonElement>('[data-var-toggle="cidades"]')!.click();
 
-    const sections = document.querySelectorAll('.var-section');
-    expect(sections.length).toBe(2);
+    expect(document.querySelectorAll('.var-section').length).toBe(2);
   });
 
-  it('cada seção tem header com nome da variável', () => {
+  it('cada seção exibe o nome da variável no título', () => {
     const app = createApp(makeVscode(), document);
     dispatchState(app, MODEL_TWO_VARS);
 
-    const select = document.getElementById('varSelect') as HTMLSelectElement;
-    select.options[0]!.selected = true;
-    select.options[1]!.selected = true;
-    select.dispatchEvent(new Event('change'));
+    document.querySelector<HTMLButtonElement>('[data-var-toggle="cidades"]')!.click();
 
     const titles = document.querySelectorAll('.var-section-title');
     expect(Array.from(titles).map((t) => t.textContent)).toEqual(['pessoas', 'cidades']);
@@ -221,10 +244,7 @@ describe('renderização — grid', () => {
     const app = createApp(makeVscode(), document);
     dispatchState(app, MODEL_TWO_VARS);
 
-    const select = document.getElementById('varSelect') as HTMLSelectElement;
-    select.options[0]!.selected = true;
-    select.options[1]!.selected = true;
-    select.dispatchEvent(new Event('change'));
+    document.querySelector<HTMLButtonElement>('[data-var-toggle="cidades"]')!.click();
 
     const sections = document.querySelectorAll('.var-section');
     const firstThs = Array.from(sections[0]!.querySelectorAll('th')).map((t) => t.textContent);
@@ -232,11 +252,20 @@ describe('renderização — grid', () => {
     expect(firstThs).toEqual(['', 'nome', 'idade']);
     expect(secondThs).toEqual(['', 'cidade']);
   });
+
+  it('desativar toggle remove a seção do grid', () => {
+    const app = createApp(makeVscode(), document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    expect(document.querySelectorAll('.var-section').length).toBe(1);
+    document.querySelector<HTMLButtonElement>('[data-var-toggle="pessoas"]')!.click();
+    expect(document.querySelectorAll('.var-section').length).toBe(0);
+  });
 });
 
-// ── Botões da toolbar → mensagens request* ────────────────────────────────
+// ── Toolbar global — apenas operações de variável ─────────────────────────
 
-describe('toolbar — mensagens enviadas ao extension', () => {
+describe('toolbar global — operações de variável', () => {
   beforeEach(buildHtml);
 
   it('+ var → requestAddVariable', () => {
@@ -263,86 +292,168 @@ describe('toolbar — mensagens enviadas ao extension', () => {
     expect(vs.calls).toContainEqual({ kind: 'requestRenameVariable', varName: 'pessoas' });
   });
 
-  it('+ coluna → requestAddColumn com varName', () => {
-    const vs = makeVscode();
-    const app = createApp(vs, document);
-    dispatchState(app, MODEL_TWO_VARS);
-    click('addColumn');
-    expect(vs.calls).toContainEqual({ kind: 'requestAddColumn', varName: 'pessoas' });
-  });
-
-  it('– coluna → requestRemoveColumn com varName', () => {
-    const vs = makeVscode();
-    const app = createApp(vs, document);
-    dispatchState(app, MODEL_TWO_VARS);
-    click('removeColumn');
-    expect(vs.calls).toContainEqual({ kind: 'requestRemoveColumn', varName: 'pessoas' });
-  });
-
-  it('renomear coluna → requestRenameColumn com varName', () => {
-    const vs = makeVscode();
-    const app = createApp(vs, document);
-    dispatchState(app, MODEL_TWO_VARS);
-    click('renameColumn');
-    expect(vs.calls).toContainEqual({ kind: 'requestRenameColumn', varName: 'pessoas' });
-  });
-
-  it('+ linha → addRow direto (sem request)', () => {
-    const vs = makeVscode();
-    const app = createApp(vs, document);
-    dispatchState(app, MODEL_TWO_VARS);
-    click('addRow');
-    expect(vs.calls).toContainEqual({ kind: 'addRow', varName: 'pessoas' });
-  });
-
-  it('– linha → requestRemoveRow com varName', () => {
-    const vs = makeVscode();
-    const app = createApp(vs, document);
-    dispatchState(app, MODEL_TWO_VARS);
-    click('removeRow');
-    expect(vs.calls).toContainEqual({ kind: 'requestRemoveRow', varName: 'pessoas' });
-  });
-
-  it('botões não postam se selectedVars for vazio', () => {
+  it('deleteVariable não posta mensagem se não há variáveis', () => {
     const vs = makeVscode();
     const app = createApp(vs, document);
     dispatchState(app, { variables: [] });
     click('deleteVariable');
-    click('addRow');
-    click('addColumn');
     expect(vs.calls).toHaveLength(0);
   });
 
-  it('troca de variável no select atualiza selectedVars e re-renderiza grid', () => {
-    const vs = makeVscode();
-    const app = createApp(vs, document);
+  it('toolbar NÃO tem botões de linha nem de coluna', () => {
+    const app = createApp(makeVscode(), document);
     dispatchState(app, MODEL_TWO_VARS);
-
-    const select = document.getElementById('varSelect') as HTMLSelectElement;
-    select.value = 'cidades';
-    select.dispatchEvent(new Event('change'));
-
-    expect(app.getState().selectedVars).toContain('cidades');
-    const ths = document.querySelectorAll('th');
-    expect(Array.from(ths).map((t) => t.textContent)).toEqual(['', 'cidade']);
+    const toolbar = document.querySelector('.dictab-toolbar')!;
+    expect(toolbar.querySelector('[data-cmd="addRow"]')).toBeNull();
+    expect(toolbar.querySelector('[data-cmd="removeRow"]')).toBeNull();
+    expect(toolbar.querySelector('[data-cmd="addColumn"]')).toBeNull();
+    expect(toolbar.querySelector('[data-cmd="removeColumn"]')).toBeNull();
   });
 
-  it('com múltiplas variáveis selecionadas, toolbar usa selectedVars[0]', () => {
-    const vs = makeVscode();
-    const app = createApp(vs, document);
+  it('toolbar NÃO tem botão renomear coluna', () => {
+    const app = createApp(makeVscode(), document);
     dispatchState(app, MODEL_TWO_VARS);
-
-    const select = document.getElementById('varSelect') as HTMLSelectElement;
-    select.options[0]!.selected = true;
-    select.options[1]!.selected = true;
-    select.dispatchEvent(new Event('change'));
-
-    click('addRow');
-    expect(vs.calls).toContainEqual({ kind: 'addRow', varName: 'pessoas' });
+    const toolbar = document.querySelector('.dictab-toolbar')!;
+    expect(toolbar.querySelector('[data-cmd="renameColumn"]')).toBeNull();
   });
 });
 
-// ── Seleção de célula (Feature 3) ─────────────────────────────────────────
+// ── Mini-toolbar por seção ─────────────────────────────────────────────────
+
+describe('mini-toolbar por seção — linha e coluna', () => {
+  beforeEach(buildHtml);
+
+  it('cada seção tem mini-toolbar com os quatro botões', () => {
+    const app = createApp(makeVscode(), document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const toolbar = document.querySelector('.var-section-toolbar')!;
+    const cmds = Array.from(toolbar.querySelectorAll('[data-cmd]')).map((b) =>
+      b.getAttribute('data-cmd'),
+    );
+    expect(cmds).toContain('addRow');
+    expect(cmds).toContain('removeRow');
+    expect(cmds).toContain('addColumn');
+    expect(cmds).toContain('removeColumn');
+  });
+
+  it('+ linha na seção "pessoas" posta addRow para pessoas', () => {
+    const vs = makeVscode();
+    const app = createApp(vs, document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const section = document.querySelector('.var-section')!;
+    section.querySelector<HTMLButtonElement>('[data-cmd="addRow"]')!.click();
+    expect(vs.calls).toContainEqual({ kind: 'addRow', varName: 'pessoas' });
+  });
+
+  it('– linha na seção posta requestRemoveRow para a variável correta', () => {
+    const vs = makeVscode();
+    const app = createApp(vs, document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const section = document.querySelector('.var-section')!;
+    section.querySelector<HTMLButtonElement>('[data-cmd="removeRow"]')!.click();
+    expect(vs.calls).toContainEqual({ kind: 'requestRemoveRow', varName: 'pessoas' });
+  });
+
+  it('+ coluna na seção posta requestAddColumn para a variável correta', () => {
+    const vs = makeVscode();
+    const app = createApp(vs, document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const section = document.querySelector('.var-section')!;
+    section.querySelector<HTMLButtonElement>('[data-cmd="addColumn"]')!.click();
+    expect(vs.calls).toContainEqual({ kind: 'requestAddColumn', varName: 'pessoas' });
+  });
+
+  it('– coluna na seção posta requestRemoveColumn para a variável correta', () => {
+    const vs = makeVscode();
+    const app = createApp(vs, document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const section = document.querySelector('.var-section')!;
+    section.querySelector<HTMLButtonElement>('[data-cmd="removeColumn"]')!.click();
+    expect(vs.calls).toContainEqual({ kind: 'requestRemoveColumn', varName: 'pessoas' });
+  });
+
+  it('com duas seções, cada mini-toolbar afeta a própria variável', () => {
+    const vs = makeVscode();
+    const app = createApp(vs, document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    document.querySelector<HTMLButtonElement>('[data-var-toggle="cidades"]')!.click();
+
+    const sections = document.querySelectorAll('.var-section');
+    sections[1]!.querySelector<HTMLButtonElement>('[data-cmd="addRow"]')!.click();
+    expect(vs.calls).toContainEqual({ kind: 'addRow', varName: 'cidades' });
+  });
+});
+
+// ── Renomear coluna — duplo clique no header ──────────────────────────────
+
+describe('renomear coluna — duplo clique no <th>', () => {
+  beforeEach(buildHtml);
+
+  it('duplo clique num header posta requestRenameColumn com varName e columnName', () => {
+    const vs = makeVscode();
+    const app = createApp(vs, document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const ths = document.querySelectorAll<HTMLElement>('th');
+    // ths[0] = vazio (row-idx), ths[1] = 'nome'
+    ths[1]!.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    expect(vs.calls).toContainEqual({
+      kind: 'requestRenameColumn',
+      varName: 'pessoas',
+      columnName: 'nome',
+    });
+  });
+
+  it('duplo clique em coluna diferente usa o columnName correto', () => {
+    const vs = makeVscode();
+    const app = createApp(vs, document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    const ths = document.querySelectorAll<HTMLElement>('th');
+    // ths[2] = 'idade'
+    ths[2]!.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    expect(vs.calls).toContainEqual({
+      kind: 'requestRenameColumn',
+      varName: 'pessoas',
+      columnName: 'idade',
+    });
+  });
+
+  it('com duas seções, dblclick no header da segunda seção usa o varName correto', () => {
+    const vs = makeVscode();
+    const app = createApp(vs, document);
+    dispatchState(app, MODEL_TWO_VARS);
+
+    document.querySelector<HTMLButtonElement>('[data-var-toggle="cidades"]')!.click();
+
+    const sections = document.querySelectorAll('.var-section');
+    const cidadesThs = sections[1]!.querySelectorAll<HTMLElement>('th');
+    // cidadesThs[0] = vazio, cidadesThs[1] = 'cidade'
+    cidadesThs[1]!.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    expect(vs.calls).toContainEqual({
+      kind: 'requestRenameColumn',
+      varName: 'cidades',
+      columnName: 'cidade',
+    });
+  });
+
+  it('NÃO existe botão renomear coluna em nenhum lugar da UI', () => {
+    const app = createApp(makeVscode(), document);
+    dispatchState(app, MODEL_TWO_VARS);
+    expect(document.querySelector('[data-cmd="renameColumn"]')).toBeNull();
+  });
+});
+
+// ── Seleção de célula (clique único seleciona, não edita) ─────────────────
 
 describe('seleção de célula — clique único seleciona, não edita', () => {
   beforeEach(buildHtml);
@@ -375,9 +486,8 @@ describe('seleção de célula — clique único seleciona, não edita', () => {
     const cell2 = document.querySelector<HTMLTableCellElement>('td[data-col="idade"]')!;
 
     cell1.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    expect(cell1.classList.contains('cell-selected')).toBe(true);
-
     cell2.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
     expect(cell1.classList.contains('cell-selected')).toBe(false);
     expect(cell2.classList.contains('cell-selected')).toBe(true);
   });
@@ -409,7 +519,7 @@ describe('modo de edição — duplo clique', () => {
     expect(cell.contentEditable).toBe('true');
   });
 
-  it('blur com valor alterado posta setCell (após entrar em modo de edição)', () => {
+  it('blur com valor alterado posta setCell', () => {
     const vs = makeVscode();
     const app = createApp(vs, document);
     dispatchState(app, MODEL_TWO_VARS);
@@ -435,7 +545,6 @@ describe('modo de edição — duplo clique', () => {
 
     const cell = document.querySelector<HTMLTableCellElement>('td[data-col="nome"]')!;
     cell.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
-    // textContent já é '"Alice"' — não altera
     cell.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
 
     expect(vs.calls).toHaveLength(0);
@@ -447,7 +556,6 @@ describe('modo de edição — duplo clique', () => {
     dispatchState(app, MODEL_TWO_VARS);
 
     const cell = document.querySelector<HTMLTableCellElement>('td[data-col="nome"]')!;
-    // Não entra em modo de edição — blur direto
     cell.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
 
     expect(vs.calls).toHaveLength(0);
@@ -472,9 +580,8 @@ describe('modo de edição — duplo clique', () => {
 
     const cell = document.querySelector<HTMLTableCellElement>('td[data-col="nome"]')!;
     cell.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    expect(cell.contentEditable).not.toBe('true');
-
     cell.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
     expect(cell.contentEditable).toBe('true');
   });
 
@@ -488,7 +595,6 @@ describe('modo de edição — duplo clique', () => {
     cell.textContent = '"Alterado"';
     cell.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 
-    // Grid re-renderizado: célula volta ao valor original
     const freshCell = document.querySelector<HTMLTableCellElement>('td[data-col="nome"]')!;
     expect(freshCell.textContent).toBe('"Alice"');
     expect(vs.calls).toHaveLength(0);
@@ -514,18 +620,10 @@ describe('paste TSV', () => {
     const app = createApp(vs, document);
     dispatchState(app, MODEL_TWO_VARS);
 
-    const cell = document.querySelector<HTMLTableCellElement>(
-      'td[data-row="0"][data-col="nome"]',
-    )!;
+    const cell = document.querySelector<HTMLTableCellElement>('td[data-row="0"][data-col="nome"]')!;
     pasteOn(cell, 'a\tb\nc\td');
 
-    expect(vs.calls).toContainEqual({
-      kind: 'paste',
-      varName: 'pessoas',
-      row: 0,
-      col: 0,
-      tsv: 'a\tb\nc\td',
-    });
+    expect(vs.calls).toContainEqual({ kind: 'paste', varName: 'pessoas', row: 0, col: 0, tsv: 'a\tb\nc\td' });
   });
 
   it('paste em célula da segunda coluna usa col=1', () => {
@@ -533,50 +631,32 @@ describe('paste TSV', () => {
     const app = createApp(vs, document);
     dispatchState(app, MODEL_TWO_VARS);
 
-    const cell = document.querySelector<HTMLTableCellElement>(
-      'td[data-row="1"][data-col="idade"]',
-    )!;
+    const cell = document.querySelector<HTMLTableCellElement>('td[data-row="1"][data-col="idade"]')!;
     pasteOn(cell, 'x\ty\n');
 
-    expect(vs.calls).toContainEqual({
-      kind: 'paste',
-      varName: 'pessoas',
-      row: 1,
-      col: 1,
-      tsv: 'x\ty\n',
-    });
+    expect(vs.calls).toContainEqual({ kind: 'paste', varName: 'pessoas', row: 1, col: 1, tsv: 'x\ty\n' });
   });
 
-  it('paste de string sem TAB nem newline NÃO envia mensagem (comportamento padrão)', () => {
+  it('paste de string sem TAB nem newline NÃO envia mensagem', () => {
     const vs = makeVscode();
     const app = createApp(vs, document);
     dispatchState(app, MODEL_TWO_VARS);
 
-    const cell = document.querySelector<HTMLTableCellElement>(
-      'td[data-row="0"][data-col="nome"]',
-    )!;
+    const cell = document.querySelector<HTMLTableCellElement>('td[data-row="0"][data-col="nome"]')!;
     const ev = pasteOn(cell, 'apenas uma string');
     expect(vs.calls).toHaveLength(0);
     expect(ev.defaultPrevented).toBe(false);
   });
 
-  it('paste com newline (mas sem TAB) envia mensagem — TSV de coluna única', () => {
+  it('paste com newline envia mensagem (TSV de coluna única)', () => {
     const vs = makeVscode();
     const app = createApp(vs, document);
     dispatchState(app, MODEL_TWO_VARS);
 
-    const cell = document.querySelector<HTMLTableCellElement>(
-      'td[data-row="0"][data-col="nome"]',
-    )!;
+    const cell = document.querySelector<HTMLTableCellElement>('td[data-row="0"][data-col="nome"]')!;
     pasteOn(cell, 'a\nb\nc');
 
-    expect(vs.calls).toContainEqual({
-      kind: 'paste',
-      varName: 'pessoas',
-      row: 0,
-      col: 0,
-      tsv: 'a\nb\nc',
-    });
+    expect(vs.calls).toContainEqual({ kind: 'paste', varName: 'pessoas', row: 0, col: 0, tsv: 'a\nb\nc' });
   });
 
   it('paste de TSV chama preventDefault', () => {
@@ -584,9 +664,7 @@ describe('paste TSV', () => {
     const app = createApp(vs, document);
     dispatchState(app, MODEL_TWO_VARS);
 
-    const cell = document.querySelector<HTMLTableCellElement>(
-      'td[data-row="0"][data-col="nome"]',
-    )!;
+    const cell = document.querySelector<HTMLTableCellElement>('td[data-row="0"][data-col="nome"]')!;
     const ev = pasteOn(cell, 'a\tb');
     expect(ev.defaultPrevented).toBe(true);
   });
@@ -605,15 +683,5 @@ describe('handleMessage — robustez', () => {
   it('ignora mensagem com kind desconhecido', () => {
     const app = createApp(makeVscode(), document);
     expect(() => app.handleMessage({ kind: 'unknown' })).not.toThrow();
-  });
-
-  it('múltiplas mensagens de state acumulam corretamente o último', () => {
-    const app = createApp(makeVscode(), document);
-    dispatchState(app, MODEL_TWO_VARS);
-    dispatchState(app, MODEL_EMPTY_VAR);
-
-    const select = document.getElementById('varSelect') as HTMLSelectElement;
-    expect(select.options.length).toBe(1);
-    expect(select.options[0]!.value).toBe('dados');
   });
 });
