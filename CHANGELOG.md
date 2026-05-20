@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/gustago/tpy/compare/v1.1.0...v1.2.0) (2026-05-20)
+
+
+### Features
+
+* add extension icon ([9bd2be6](https://github.com/gustago/tpy/commit/9bd2be6000251185588647440cf09644ff85bd90))
+
 # [1.1.0](https://github.com/gustago/tpy/compare/v1.0.2...v1.1.0) (2026-05-20)
 
 

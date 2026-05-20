@@ -2,7 +2,7 @@
   "name": "tpy-editor",
   "displayName": "tpy",
   "description": "Edit .t.py Python files (record-oriented data) as Excel-like spreadsheets",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "publisher": "gustago",
   "icon": "icon.png",
   "license": "MIT",
