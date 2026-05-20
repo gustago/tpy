@@ -2,7 +2,7 @@
   "name": "tpy",
   "displayName": "tpy",
   "description": "Edit .t.py Python files (record-oriented data) as Excel-like spreadsheets",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "gustago",
   "engines": {
     "vscode": "^1.85.0",

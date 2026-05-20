@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/gustago/tpy/compare/v1.0.0...v1.0.1) (2026-05-20)
+
+
+### Bug Fixes
+
+* **ci:** use shell variable syntax $VSCE_PAT in publishCmd ([f979bbb](https://github.com/gustago/tpy/commit/f979bbbc4c4b0e69990a10f9c2667a68d04d81b3))
+
 # 1.0.0 (2026-05-20)
 
 
