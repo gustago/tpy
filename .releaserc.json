@@ -7,7 +7,7 @@
     ["@semantic-release/npm", { "npmPublish": false }],
     ["@semantic-release/exec", {
       "prepareCmd": "npm run build && npx vsce package",
-      "publishCmd": "npx vsce publish -p $VSCE_PAT"
+      "publishCmd": "npx vsce publish -p $VSCE_PAT && npx ovsx publish tpy-editor-${nextRelease.version}.vsix -p $OVSX_PAT"
     }],
     ["@semantic-release/github", {
       "assets": [{ "path": "*.vsix", "label": "VSIX Package" }]
