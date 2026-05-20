@@ -42,7 +42,7 @@ jobs:
       - run: npm run coverage
       - run: npm run build
       - name: Package vsix
-        run: npx vsce package --skip-license
+        run: npx vsce package
         if: matrix.os == 'ubuntu-latest'
       - name: Upload vsix artifact
         if: matrix.os == 'ubuntu-latest'
