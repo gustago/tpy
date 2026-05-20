@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/gustago/tpy/compare/v1.2.0...v1.2.1) (2026-05-20)
+
+
+### Bug Fixes
+
+* exclude CI config files from VSIX package ([2934a8c](https://github.com/gustago/tpy/commit/2934a8cd3cf8fad64897fe5cdf6bdd5e00371a28))
+
 # [1.2.0](https://github.com/gustago/tpy/compare/v1.1.0...v1.2.0) (2026-05-20)
 
 
