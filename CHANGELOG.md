@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/gustago/tpy/compare/v1.0.1...v1.0.2) (2026-05-20)
+
+
+### Bug Fixes
+
+* rename package to tpy-editor (tpy already taken on Marketplace) ([5284366](https://github.com/gustago/tpy/commit/5284366b031dcea84ff82686cb3ded0b142fe6e8))
+
 ## [1.0.1](https://github.com/gustago/tpy/compare/v1.0.0...v1.0.1) (2026-05-20)
 
 
