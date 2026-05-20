@@ -1,3 +1,5 @@
+<img src="icon.png" alt="tpy" width="128">
+
 # tpy
 
 Edit `.t.py` Python files as interactive spreadsheets — right inside VS Code and Cursor.
