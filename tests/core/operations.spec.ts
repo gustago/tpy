@@ -118,7 +118,7 @@ describe('operations — linhas', () => {
   });
 
   it('addRow em var com schema mas 0 linhas funciona', () => {
-    const m = addRow(modelOf('var = []  # dictab:cols=["a","b"]\n'), 'var');
+    const m = addRow(modelOf('var = []  # tpy:cols=["a","b"]\n'), 'var');
     const v = getVariable(m, 'var');
     expect(v?.rows).toHaveLength(1);
     expect(v?.rows[0]?.map((c) => c.source)).toEqual(['None', 'None']);

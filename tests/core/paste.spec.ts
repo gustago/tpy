@@ -94,7 +94,7 @@ describe('paste.applyPaste — R9.4/R9.5/R9.6', () => {
   });
 
   it('R9.6 — paste em variável 0 linhas × N colunas usa schema existente', () => {
-    const m = modelOf('var = []  # dictab:cols=["x","y"]\n');
+    const m = modelOf('var = []  # tpy:cols=["x","y"]\n');
     const out = applyPaste(m, 'var', 0, 0, [['1', '2']]);
     const v = getVariable(out, 'var');
     expect(v?.schema).toEqual(['x', 'y']);
@@ -102,7 +102,7 @@ describe('paste.applyPaste — R9.4/R9.5/R9.6', () => {
   });
 
   it('R9.6 — paste mais largo que schema existente expande à direita', () => {
-    const m = modelOf('var = []  # dictab:cols=["x"]\n');
+    const m = modelOf('var = []  # tpy:cols=["x"]\n');
     const out = applyPaste(m, 'var', 0, 0, [['1', '2', '3']]);
     const v = getVariable(out, 'var');
     expect(v?.schema).toEqual(['x', 'col_2', 'col_3']);

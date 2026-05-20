@@ -8,7 +8,7 @@ const SELECTOR: vscode.DocumentSelector = { pattern: '**/*.t.py' };
 export function registerLanguageFeatures(
   context: vscode.ExtensionContext,
 ): void {
-  const collection = vscode.languages.createDiagnosticCollection('dictab');
+  const collection = vscode.languages.createDiagnosticCollection('tpy');
   context.subscriptions.push(collection);
 
   const refresh = (doc: vscode.TextDocument): void => {
@@ -26,7 +26,7 @@ export function registerLanguageFeatures(
             ? vscode.DiagnosticSeverity.Warning
             : vscode.DiagnosticSeverity.Error;
         const diag = new vscode.Diagnostic(new vscode.Range(start, end), d.message, severity);
-        diag.source = 'dictab';
+        diag.source = 'tpy';
         diag.code = d.ruleId;
         return diag;
       }),

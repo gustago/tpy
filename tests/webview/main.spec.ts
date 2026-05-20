@@ -4,7 +4,7 @@ import type { VscodeApi } from '../../src/webview/main';
 
 function buildHtml(): void {
   document.body.innerHTML = `
-    <header class="dictab-toolbar">
+    <header class="tpy-toolbar">
       <button data-cmd="addVariable">+ var</button>
       <button data-cmd="deleteVariable">– var</button>
       <button data-cmd="renameVariable">renomear var</button>
@@ -303,7 +303,7 @@ describe('toolbar global — operações de variável', () => {
   it('toolbar NÃO tem botões de linha nem de coluna', () => {
     const app = createApp(makeVscode(), document);
     dispatchState(app, MODEL_TWO_VARS);
-    const toolbar = document.querySelector('.dictab-toolbar')!;
+    const toolbar = document.querySelector('.tpy-toolbar')!;
     expect(toolbar.querySelector('[data-cmd="addRow"]')).toBeNull();
     expect(toolbar.querySelector('[data-cmd="removeRow"]')).toBeNull();
     expect(toolbar.querySelector('[data-cmd="addColumn"]')).toBeNull();
@@ -313,7 +313,7 @@ describe('toolbar global — operações de variável', () => {
   it('toolbar NÃO tem botão renomear coluna', () => {
     const app = createApp(makeVscode(), document);
     dispatchState(app, MODEL_TWO_VARS);
-    const toolbar = document.querySelector('.dictab-toolbar')!;
+    const toolbar = document.querySelector('.tpy-toolbar')!;
     expect(toolbar.querySelector('[data-cmd="renameColumn"]')).toBeNull();
   });
 });

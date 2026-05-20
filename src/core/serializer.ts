@@ -47,7 +47,7 @@ function renderListBody(v: Variable): string {
   if (v.rows.length === 0) {
     if (v.schema.length === 0) return '[]';
     const cols = v.schema.map((c) => JSON.stringify(c)).join(',');
-    return `[]  # dictab:cols=[${cols}]`;
+    return `[]  # tpy:cols=[${cols}]`;
   }
   const lines: string[] = ['['];
   for (const row of v.rows) {

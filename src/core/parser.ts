@@ -734,7 +734,7 @@ interface SentinelResult {
 }
 
 function parseSentinel(commentValue: string): SentinelResult {
-  const m = /^#\s*dictab:cols=(.+)$/.exec(commentValue);
+  const m = /^#\s*tpy:cols=(.+)$/.exec(commentValue);
   if (!m) return { schema: null, malformed: false };
   let parsed: unknown;
   try {

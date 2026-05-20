@@ -8,7 +8,7 @@ function isValidIdentifier(name: string): boolean {
 function isValidExpression(src: string): boolean {
   const trimmed = src.trim();
   if (trimmed === '') return false;
-  const wrapped = `__dictab_check__ = [{"_": ${src}}]\n`;
+  const wrapped = `__tpy_check__ = [{"_": ${src}}]\n`;
   const result = parse(wrapped);
   if (result.errors.length > 0) return false;
   const last = trimmed[trimmed.length - 1]!;

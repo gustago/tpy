@@ -55,18 +55,18 @@ describe('serialize() — §6 round-trip', () => {
     it('serializa como `var = []`', () => {
       const out = roundTrip('var = []\n');
       expect(out).toContain('var = []\n');
-      expect(out).not.toContain('# dictab:cols');
+      expect(out).not.toContain('# tpy:cols');
     });
   });
 
   describe('R6.6 — var vazia com schema (sentinela)', () => {
     it('serializa com sentinela JSON-like, dois espaços antes do `#`', () => {
       const out = roundTrip(fx.VAR_WITH_SENTINEL);
-      expect(out).toContain('var = []  # dictab:cols=["a","b"]\n');
+      expect(out).toContain('var = []  # tpy:cols=["a","b"]\n');
     });
 
     it('aspas duplas para chaves no sentinela mesmo se source usava simples', () => {
-      const out = roundTrip(`var = []  # dictab:cols=["a","b"]\n`);
+      const out = roundTrip(`var = []  # tpy:cols=["a","b"]\n`);
       expect(out).toContain('"a","b"');
     });
   });

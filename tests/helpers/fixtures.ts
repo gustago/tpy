@@ -11,7 +11,7 @@ export const SIMPLE_VAR_WITH_ROWS = `var = [
 ]
 `;
 
-export const VAR_WITH_SENTINEL = `var = []  # dictab:cols=["a","b"]
+export const VAR_WITH_SENTINEL = `var = []  # tpy:cols=["a","b"]
 `;
 
 export const TWO_VARS = `var1 = [

@@ -11,18 +11,18 @@ export function getWebviewHtml(
   const styleUri = webview.asWebviewUri(
     vscode.Uri.joinPath(extensionUri, 'dist', 'webview', 'styles.css'),
   );
-  const themeMode = vscode.workspace.getConfiguration('dictab').get<string>('theme', 'auto');
+  const themeMode = vscode.workspace.getConfiguration('tpy').get<string>('theme', 'auto');
 
   return `<!DOCTYPE html>
 <html lang="pt-BR" data-theme="${themeMode}">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
-  <title>dictab</title>
+  <title>tpy</title>
   <link rel="stylesheet" href="${styleUri}">
 </head>
 <body>
-  <header class="dictab-toolbar">
+  <header class="tpy-toolbar">
     <button data-cmd="addVariable">+ var</button>
     <button data-cmd="deleteVariable">– var</button>
     <button data-cmd="renameVariable">renomear var</button>

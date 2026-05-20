@@ -7,28 +7,28 @@ export function activate(context: vscode.ExtensionContext): void {
   registerLanguageFeatures(context);
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('dictab.openSpreadsheet', async () => {
+    vscode.commands.registerCommand('tpy.openSpreadsheet', async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor || !editor.document.fileName.endsWith('.t.py')) {
         vscode.window.showErrorMessage(
-          'dictab: este comando só funciona em arquivos .t.py',
+          'tpy: este comando só funciona em arquivos .t.py',
         );
         return;
       }
       await vscode.commands.executeCommand(
         'vscode.openWith',
         editor.document.uri,
-        'dictab.spreadsheet',
+        'tpy.spreadsheet',
       );
     }),
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('dictab.openSource', async () => {
+    vscode.commands.registerCommand('tpy.openSource', async () => {
       const tab = vscode.window.tabGroups.activeTabGroup.activeTab;
       if (
         tab?.input instanceof vscode.TabInputCustom &&
-        tab.input.viewType === 'dictab.spreadsheet'
+        tab.input.viewType === 'tpy.spreadsheet'
       ) {
         await vscode.commands.executeCommand(
           'vscode.openWith',

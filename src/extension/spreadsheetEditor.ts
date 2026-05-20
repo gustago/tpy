@@ -47,7 +47,7 @@ function isRequest(msg: IncomingMessage): msg is RequestMessage {
 }
 
 export class SpreadsheetEditorProvider implements vscode.CustomTextEditorProvider {
-  static readonly viewType = 'dictab.spreadsheet';
+  static readonly viewType = 'tpy.spreadsheet';
 
   static register(context: vscode.ExtensionContext): vscode.Disposable {
     return vscode.window.registerCustomEditorProvider(
@@ -70,7 +70,7 @@ export class SpreadsheetEditorProvider implements vscode.CustomTextEditorProvide
     if (initial.model === null) {
       const first = initial.errors[0];
       vscode.window.showErrorMessage(
-        `dictab: arquivo inválido — ${first?.message ?? 'erro desconhecido'}`,
+        `tpy:arquivo inválido — ${first?.message ?? 'erro desconhecido'}`,
       );
       return;
     }
@@ -101,7 +101,7 @@ export class SpreadsheetEditorProvider implements vscode.CustomTextEditorProvide
         next = applyMutation(r.model, msg);
       } catch (err) {
         vscode.window.showErrorMessage(
-          `dictab: ${err instanceof Error ? err.message : String(err)}`,
+          `tpy:${err instanceof Error ? err.message : String(err)}`,
         );
         return;
       }
@@ -201,7 +201,7 @@ async function resolveRequest(
     }
   } catch (err) {
     vscode.window.showErrorMessage(
-      `dictab: ${err instanceof Error ? err.message : String(err)}`,
+      `tpy:${err instanceof Error ? err.message : String(err)}`,
     );
     return null;
   }

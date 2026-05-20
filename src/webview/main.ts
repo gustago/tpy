@@ -120,7 +120,7 @@ export function createApp(
     }
 
     const table = doc.createElement('table');
-    table.className = 'dictab-grid';
+    table.className = 'tpy-grid';
 
     const thead = doc.createElement('thead');
     const headRow = doc.createElement('tr');

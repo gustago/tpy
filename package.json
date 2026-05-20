@@ -1,9 +1,9 @@
 {
-  "name": "dictab",
-  "displayName": "dictab",
+  "name": "tpy",
+  "displayName": "tpy",
   "description": "Edit .t.py Python files (record-oriented data) as Excel-like spreadsheets",
   "version": "0.0.1",
-  "publisher": "dictab",
+  "publisher": "gustago",
   "engines": {
     "vscode": "^1.85.0",
     "node": ">=20"
@@ -17,8 +17,8 @@
   "contributes": {
     "customEditors": [
       {
-        "viewType": "dictab.spreadsheet",
-        "displayName": "dictab Spreadsheet",
+        "viewType": "tpy.spreadsheet",
+        "displayName": "tpy Spreadsheet",
         "selector": [
           {
             "filenamePattern": "*.t.py"
@@ -29,29 +29,29 @@
     ],
     "commands": [
       {
-        "command": "dictab.openSpreadsheet",
+        "command": "tpy.openSpreadsheet",
         "title": "Abrir como Planilha",
-        "category": "dictab"
+        "category": "tpy"
       },
       {
-        "command": "dictab.openSource",
+        "command": "tpy.openSource",
         "title": "Voltar para o código",
-        "category": "dictab"
+        "category": "tpy"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "dictab.openSpreadsheet",
+          "command": "tpy.openSpreadsheet",
           "when": "resourceFilename =~ /\\.t\\.py$/",
           "group": "navigation"
         }
       ]
     },
     "configuration": {
-      "title": "dictab",
+      "title": "tpy",
       "properties": {
-        "dictab.theme": {
+        "tpy.theme": {
           "type": "string",
           "enum": [
             "auto",

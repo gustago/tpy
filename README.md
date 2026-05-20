@@ -1,65 +1,96 @@
-# dictab
+# tpy
 
-Edita arquivos `.t.py` (Python record-oriented: `imports` + variáveis `list[dict]` homogêneas) como planilha estilo Excel no VSCode.
+Edit `.t.py` Python files as interactive spreadsheets — right inside VS Code and Cursor.
 
-## Status
+`.t.py` files are plain Python files that store tabular data as `list[dict]` assignments. tpy lets you view and edit them visually without touching the source code manually.
 
-v0.0.1 — distribuído como `.vsix`. Marketplace ainda não.
+## Features
 
-## Contrato dos arquivos
+### Spreadsheet view for `.t.py` files
 
-Apenas arquivos terminando em `.t.py` (case-sensitive). Conteúdo permitido no toplevel:
+Open any `.t.py` file and click **"Abrir como Planilha"** in the editor title bar to switch to the table view. All edits write back to valid, Black-compatible Python automatically.
 
-- `import` / `from ... import ...`
-- Atribuições simples ou anotadas: `x = [...]`, `x: list[dict] = [...]`
-- Comentários, docstring de módulo
+### Multiple datasets side by side
 
-Cada variável deve ser `list[dict]` com **dicts homogêneos** (mesmas chaves, na mesma ordem):
+Each `list[dict]` variable in your file becomes its own table. Toggle which variables are visible using the pill buttons at the top — you can display one or several at the same time.
+
+### Cell selection and editing
+
+- **Click** a cell to select it (highlighted with an accent outline)
+- **Double-click** (or press Enter) to enter edit mode
+- **Escape** cancels edits; **Tab / Enter** confirms and moves to the next cell
+- **Ctrl+C / Ctrl+V** copies and pastes cells; paste from Excel works too
+
+### Row and column operations
+
+Each variable section has its own mini-toolbar:
+
+| Button | Action |
+|--------|--------|
+| `+ linha` | Add a row at the end |
+| `– linha` | Remove a row (prompts for row number) |
+| `+ coluna` | Add a column (prompts for name) |
+| `– coluna` | Remove a column |
+
+**Rename a column:** double-click any column header.
+
+### Variable management
+
+Use the global toolbar to:
+
+- `+ var` — create a new variable
+- `– var` — delete a variable (with confirmation)
+- `renomear var` — rename a variable
+
+### AI-generated files supported
+
+tpy tolerates inline comments inside lists and dicts — common in AI-generated `.t.py` files — without breaking the parser.
+
+### Live diagnostics
+
+Errors in `.t.py` files appear as red squiggles in the text editor, with hover messages and problem panel integration.
+
+### Theme support
+
+tpy follows your VS Code theme automatically. You can also pin it:
+
+```json
+"tpy.theme": "auto"   // "auto" | "light" | "dark"
+```
+
+## File format
+
+`.t.py` files contain standard Python: imports, module docstrings, and `list[dict]` variable assignments with homogeneous dicts (same keys, same order across all rows):
 
 ```python
 import pandas as pd
 from datetime import date
 
-dataset = [
-    {"date": date(2024, 1, 1), "value": 1},
-    {"date": date(2024, 1, 2), "value": 2},
+sales = [
+    {"date": date(2024, 1, 1), "region": "SP", "revenue": 1200},
+    {"date": date(2024, 1, 2), "region": "RJ", "revenue": 980},
+]
+
+targets = [
+    {"region": "SP", "goal": 1500},
+    {"region": "RJ", "goal": 1000},
 ]
 ```
 
-Variável vazia preserva schema via comentário sentinela:
+Empty variables preserve their schema via a sentinel comment:
 
 ```python
-empty = []  # dictab:cols=["a","b"]
+empty = []  # tpy:cols=["col_a","col_b"]
 ```
 
-Detalhes completos em `RULES.md` (no repositório fonte).
+tpy produces Black-compatible output — running Black on a saved `.t.py` file is a no-op.
 
-## Uso
+## Requirements
 
-1. Instale o `.vsix`: `code --install-extension dictab-0.0.1.vsix`
-2. Abra um arquivo `.t.py` — abre no editor de código por padrão.
-3. Clique em "**Abrir como Planilha**" na barra de título do editor para alternar para a visão de tabela.
-4. Ctrl+S salva (volta para Python normal).
+VS Code 1.85 or later (or Cursor).
 
-## Desenvolvimento
+## Extension Settings
 
-```bash
-npm install
-npm test               # vitest
-npm run coverage       # gate: 100% line/func/stmt, 95% branch em src/core/**
-npm run typecheck
-npm run build
-npm run package        # gera dictab-<version>.vsix
-```
-
-## Stack
-
-- TypeScript estrito, sem dependências de runtime no core
-- Tokenizer + parser Python custom (~700 LOC) tailored para o contrato restrito
-- Vitest + c8 para testes/coverage
-- VSCode Custom Text Editor + DiagnosticCollection
-- Sem LSP server separado (provedores nativos do VSCode bastam pra v1)
-
-## Licença
-
-A definir.
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `tpy.theme` | `"auto"` | Color theme: `"auto"` follows VS Code, `"light"` or `"dark"` to pin |

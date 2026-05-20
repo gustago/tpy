@@ -264,26 +264,26 @@ describe('parse() — §4 schema', () => {
 
   describe('R4.2 — sentinela em variável vazia', () => {
     it('aceita sentinela bem-formado', () => {
-      const r = ok('var = []  # dictab:cols=["a","b"]\n');
+      const r = ok('var = []  # tpy:cols=["a","b"]\n');
       expect(r.model?.variables[0]?.schema).toEqual(['a', 'b']);
       expect(r.model?.variables[0]?.rows).toEqual([]);
     });
 
     it('aceita sentinela vazio', () => {
-      const r = ok('var = []  # dictab:cols=[]\n');
+      const r = ok('var = []  # tpy:cols=[]\n');
       expect(r.model?.variables[0]?.schema).toEqual([]);
     });
 
     it('aceita sentinela com aspas duplas escapadas', () => {
-      const r = ok('var = []  # dictab:cols=["with \\"quote\\"","b"]\n');
+      const r = ok('var = []  # tpy:cols=["with \\"quote\\"","b"]\n');
       expect(r.model?.variables[0]?.schema).toEqual(['with "quote"', 'b']);
     });
 
     it.each([
-      ['var = []  # dictab:cols=[a,b]\n'], // sem aspas
-      ['var = []  # dictab:cols=["a"\n'], // não fecha
-      ['var = []  # dictab:cols={"a":1}\n'], // não-array
-      ['var = []  # dictab:cols=[1,2]\n'], // não-string
+      ['var = []  # tpy:cols=[a,b]\n'], // sem aspas
+      ['var = []  # tpy:cols=["a"\n'], // não fecha
+      ['var = []  # tpy:cols={"a":1}\n'], // não-array
+      ['var = []  # tpy:cols=[1,2]\n'], // não-string
     ])('rejeita sentinela malformado: %s', (src) => {
       fail(src, RULES.R4_2);
     });
@@ -296,7 +296,7 @@ describe('parse() — §4 schema', () => {
   });
 
   it('R4.4 — sentinela ignorado se há linhas', () => {
-    const r = ok('var = [{"x": 1}]  # dictab:cols=["wrong"]\n');
+    const r = ok('var = [{"x": 1}]  # tpy:cols=["wrong"]\n');
     expect(r.model?.variables[0]?.schema).toEqual(['x']);
   });
 });

@@ -30,7 +30,7 @@ body {
   font-size: var(--vscode-font-size, 13px);
 }
 
-.dictab-toolbar {
+.tpy-toolbar {
   display: flex;
   gap: 6px;
   align-items: center;
@@ -39,15 +39,15 @@ body {
   flex-wrap: wrap;
 }
 
-.dictab-toolbar .sep {
+.tpy-toolbar .sep {
   width: 1px;
   height: 18px;
   background: var(--border);
   margin: 0 4px;
 }
 
-.dictab-toolbar select,
-.dictab-toolbar button {
+.tpy-toolbar select,
+.tpy-toolbar button {
   background: var(--bg);
   color: var(--fg);
   border: 1px solid var(--border);
@@ -86,7 +86,7 @@ body {
   border-color: var(--accent);
 }
 
-.dictab-toolbar button:hover {
+.tpy-toolbar button:hover {
   border-color: var(--accent);
 }
 
@@ -128,13 +128,13 @@ body {
   border-color: var(--accent);
 }
 
-.dictab-grid {
+.tpy-grid {
   border-collapse: collapse;
   font-family: var(--vscode-editor-font-family, monospace);
 }
 
-.dictab-grid th,
-.dictab-grid td {
+.tpy-grid th,
+.tpy-grid td {
   border: 1px solid var(--border);
   padding: 4px 8px;
   text-align: left;
@@ -142,21 +142,21 @@ body {
   vertical-align: top;
 }
 
-.dictab-grid th {
+.tpy-grid th {
   background: var(--row-alt);
   font-weight: 600;
 }
 
-.dictab-grid thead th:not(:first-child) {
+.tpy-grid thead th:not(:first-child) {
   cursor: pointer;
   user-select: none;
 }
 
-.dictab-grid thead th:not(:first-child):hover {
+.tpy-grid thead th:not(:first-child):hover {
   background: color-mix(in srgb, var(--accent) 15%, var(--row-alt));
 }
 
-.dictab-grid td.row-idx {
+.tpy-grid td.row-idx {
   background: var(--row-alt);
   text-align: right;
   user-select: none;
@@ -165,27 +165,27 @@ body {
   opacity: 0.7;
 }
 
-.dictab-grid td:not(.row-idx):not(.empty-rows):hover {
+.tpy-grid td:not(.row-idx):not(.empty-rows):hover {
   background: var(--row-alt);
   cursor: default;
 }
 
-.dictab-grid td.cell-selected {
+.tpy-grid td.cell-selected {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
   background: color-mix(in srgb, var(--accent) 10%, var(--bg));
 }
 
-.dictab-grid td[contenteditable="true"] {
+.tpy-grid td[contenteditable="true"] {
   cursor: text;
 }
 
-.dictab-grid td[contenteditable="true"]:focus {
+.tpy-grid td[contenteditable="true"]:focus {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
 
-.dictab-grid td.empty-rows {
+.tpy-grid td.empty-rows {
   text-align: center;
   font-style: italic;
   opacity: 0.6;
