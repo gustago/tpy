@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/gustago/tpy/compare/v1.0.2...v1.1.0) (2026-05-20)
+
+
+### Features
+
+* **ci:** publish to Open VSX Registry on every release ([5586e0a](https://github.com/gustago/tpy/commit/5586e0abe10eef4a40250ef95bce24d529513d5f))
+
 ## [1.0.2](https://github.com/gustago/tpy/compare/v1.0.1...v1.0.2) (2026-05-20)
 
 
